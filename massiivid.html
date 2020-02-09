@@ -1,0 +1,99 @@
+<html>
+<!--autor: MK / kp: 01/01/2020-->
+
+<head>
+    <script src='https://code.jquery.com/jquery-3.4.1.min.js'></script>
+    <script>
+        const print = console.log
+
+        $(() => {
+            $('input[type=button]').click(function() {
+                var sisend = $('#sisend').val()
+                if (sisend === '')
+                    return $('#tagasiside').html('Vigane sisend!')
+                var massiiv = sisend.split(',').map(Number)
+                if (massiiv.length < 2)
+                    return $('#tagasiside').html('Tegu pole massiiviga!')
+
+                //tootlus
+                var tulem = jagaJaValitse(massiiv, 0)
+                $('#esialgne').html(massiiv.toString().replace(/,/g, ', '))
+                $('#tagastus').html(tulem.toString().replace(/,/g, ', '))
+                $('#tulemus').html(tulem.slice(0, 2).toString().replace(/,/g, ', '))
+            })
+        })
+
+        /*
+            massiivi kaheks võrdse suurusega tükiks jagamine
+            kui massiivi pikkus on 0 või 1, siis tagastame massiivi
+        */
+        function jagaJaValitse(massiiv) {
+            var n = massiiv.length
+            if (n < 2)
+                return massiiv
+
+            //etteantud massiivi pooleks jagamine
+            var v = massiiv.slice(0, n / 2),
+                p = massiiv.slice(n / 2, n)
+
+            //omakorda massiivide pooleks jagamine 
+            var vMassiiv = jagaJaValitse(v),
+                pMassiiv = jagaJaValitse(p)
+
+            //poimib kahest massiivist sobiliku massiivi
+            return põimiMassiivid(vMassiiv, pMassiiv)
+        }
+
+        /*
+            kahe massiivi omavaheline põimimine
+            koostatud massiivi alguses on väikseima vahega elemendid
+        */
+        function põimiMassiivid(v, p) {
+            //uurib kas vasak voi parem haru on vaiksema vahega
+            var vParim = v.length > 1 ? Math.abs(v[0] - v[1]) : Number.MAX_SAFE_INTEGER,
+                pParim = p.length > 1 ? Math.abs(p[0] - p[1]) : Number.MAX_SAFE_INTEGER,
+                parim = (vParim <= pParim ? vParim : pParim),
+                suund = (v.length > 1 || p.length > 1) ? (vParim <= pParim ? 0 : 1) : 2
+
+            //omakorda uurib, kas massiivide endi vahel voib olla vaikseima vahega komponatsioon
+            var leitud = []
+            for (var i = 0; i < v.length; i++) {
+                for (var j = 0; j < p.length; j++) {
+                    var uusVahe = Math.abs(v[i] - p[j])
+                    if (uusVahe < parim) {
+                        parim = uusVahe
+                        leitud = [i, j]
+                    }
+                }
+            }
+
+            //kui leiab midagi, siis lisab need koostatava massiivi algusesse
+            //kui mitte, siis paneb vasak voi parema haru vaartused massiivi algusesse
+            var uus = []
+            if (leitud.length > 0) {
+                uus = [v[leitud[0]], p[leitud[1]]]
+                v.splice(leitud[0], 1)
+                p.splice(leitud[1], 1)
+                uus.push(...v)
+                uus.push(...p)
+            } else {
+                uus = (suund == 0 ? v : p)
+                uus.push(...(suund == 0 ? p : v))
+            }
+            return uus
+        }
+    </script>
+</head>
+
+<body>
+    <h2>Jaga Ja Valitse</h2>
+    <p>Selgitus: Igal põimimisel pannakse massiivi algusesse kaks kõige väiksema vahega elementi.<br>Näide: 9000,4444,334,555</p>
+    <span id='tagasiside'></span><br>
+    <input type='text' id='sisend' style='width: 100%'>
+    <input type='button' value='TEST'>
+    <p>
+        Esialgne: <span id='esialgne'></span><br> Tagastatakse: <span id='tagastus'></span><br> Tulemus: <span id='tulemus'></span>
+    </p>
+</body>
+
+</html>
